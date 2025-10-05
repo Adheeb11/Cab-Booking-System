@@ -289,7 +289,7 @@ export default function BookRide() {
           <p className="text-gray-600">Quick and easy cab booking with real-time route calculation</p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
           {/* Booking Form */}
           <div className="bg-white rounded-lg shadow-xl p-6">
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -580,7 +580,7 @@ export default function BookRide() {
           </div>
 
           {/* Map Section */}
-          <div className="bg-white rounded-lg shadow-xl overflow-hidden">
+          <div className="bg-white rounded-lg shadow-xl overflow-hidden flex flex-col">
             <div className="lg:hidden p-4 border-b border-gray-200">
               <button
                 onClick={() => setShowMap(!showMap)}
@@ -590,7 +590,7 @@ export default function BookRide() {
               </button>
             </div>
             
-            <div className={`h-[600px] ${showMap ? 'block' : 'hidden lg:block'}`}>
+            <div className={`h-[500px] ${showMap ? 'block' : 'hidden lg:block'}`}>
               {bookingData.pickupLat && bookingData.pickupLng && bookingData.dropLat && bookingData.dropLng ? (
                 <MapComponent
                   pickupLat={bookingData.pickupLat}
@@ -636,25 +636,6 @@ export default function BookRide() {
                 </div>
               )}
             </div>
-          </div>
-        </div>
-
-        {/* Info Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
-          <div className="bg-white rounded-lg shadow-lg p-6 text-center">
-            <div className="text-indigo-600 text-4xl mb-2">🗺️</div>
-            <h3 className="font-semibold text-gray-900 mb-1">OpenStreetMap</h3>
-            <p className="text-sm text-gray-600">100% Free mapping - No API key required</p>
-          </div>
-          <div className="bg-white rounded-lg shadow-lg p-6 text-center">
-            <div className="text-indigo-600 text-4xl mb-2">📍</div>
-            <h3 className="font-semibold text-gray-900 mb-1">Smart Search</h3>
-            <p className="text-sm text-gray-600">Type 3+ characters to get location suggestions</p>
-          </div>
-          <div className="bg-white rounded-lg shadow-lg p-6 text-center">
-            <div className="text-indigo-600 text-4xl mb-2">🚗</div>
-            <h3 className="font-semibold text-gray-900 mb-1">Auto Calculate</h3>
-            <p className="text-sm text-gray-600">Distance & fare calculated automatically</p>
           </div>
         </div>
       </div>
