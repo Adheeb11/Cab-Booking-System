@@ -6,17 +6,27 @@ import Link from 'next/link';
 
 interface Booking {
   bookingId: number;
+  userId: number;
+  userName: string;
+  userEmail: string;
   pickupLocation: string;
   dropLocation: string;
   distance: number;
   fare: number;
   status: string;
-  bookingDate: string;
-  isEcoFriendly: boolean;
+  bookingTime: string;
+  ecoRide: boolean;
   carbonSaved: number;
-  user: { userId: number; name: string; email: string };
-  cab: { cabId: number; cabNumber: string; cabType: string };
-  driver: { driverId: number; name: string; phone: string };
+  cabId: number;
+  cabNumber: string;
+  cabType: string;
+  isElectric: boolean;
+  driverId: number;
+  driverName: string;
+  driverPhone: string;
+  driverRating: number;
+  paymentMethod: string;
+  paymentStatus: string;
 }
 
 export default function AdminBookings() {
@@ -115,7 +125,7 @@ export default function AdminBookings() {
               <div className="flex justify-between items-start mb-4">
                 <div>
                   <h3 className="text-xl font-bold text-gray-800">Booking #{booking.bookingId}</h3>
-                  <p className="text-sm text-gray-500">{new Date(booking.bookingDate).toLocaleString()}</p>
+                  <p className="text-sm text-gray-500">{new Date(booking.bookingTime).toLocaleString()}</p>
                 </div>
                 <div className="flex gap-2">
                   <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
@@ -126,7 +136,7 @@ export default function AdminBookings() {
                   }`}>
                     {booking.status}
                   </span>
-                  {booking.isEcoFriendly && (
+                  {booking.ecoRide && (
                     <span className="px-3 py-1 rounded-full text-sm font-semibold bg-emerald-100 text-emerald-800">
                       🌱 Eco
                     </span>
@@ -137,18 +147,18 @@ export default function AdminBookings() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                 <div>
                   <p className="text-sm font-medium text-gray-600">User</p>
-                  <p className="text-gray-900">{booking.user.name}</p>
-                  <p className="text-sm text-gray-500">{booking.user.email}</p>
+                  <p className="text-gray-900">{booking.userName || 'N/A'}</p>
+                  <p className="text-sm text-gray-500">{booking.userEmail || 'N/A'}</p>
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-600">Driver</p>
-                  <p className="text-gray-900">{booking.driver.name}</p>
-                  <p className="text-sm text-gray-500">{booking.driver.phone}</p>
+                  <p className="text-gray-900">{booking.driverName || 'N/A'}</p>
+                  <p className="text-sm text-gray-500">{booking.driverPhone || 'N/A'}</p>
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-600">Cab</p>
-                  <p className="text-gray-900">{booking.cab.cabNumber}</p>
-                  <p className="text-sm text-gray-500">{booking.cab.cabType}</p>
+                  <p className="text-gray-900">{booking.cabNumber || 'N/A'}</p>
+                  <p className="text-sm text-gray-500">{booking.cabType || 'N/A'}</p>
                 </div>
               </div>
 
@@ -171,7 +181,7 @@ export default function AdminBookings() {
                 </div>
               </div>
 
-              {booking.isEcoFriendly && (
+              {booking.ecoRide && booking.carbonSaved > 0 && (
                 <div className="mb-4 p-3 bg-emerald-50 rounded border border-emerald-200">
                   <p className="text-sm text-emerald-800">
                     🌱 Carbon Saved: <span className="font-bold">{booking.carbonSaved.toFixed(2)} kg CO₂</span>

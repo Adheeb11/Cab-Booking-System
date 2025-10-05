@@ -15,9 +15,20 @@ public class BookingRequest {
     private Long userId;
     private String pickupLocation;
     private String dropLocation;
+    
+    // Location coordinates (for OpenStreetMap integration)
+    private Double pickupLatitude;
+    private Double pickupLongitude;
+    private Double dropLatitude;
+    private Double dropLongitude;
+    
     private Double distance;
+    private String bookingTime;        // Booking time string from frontend
+    private String cabType;            // sedan, suv, luxury, etc.
+    private Double fare;               // Pre-calculated fare from frontend
     private Boolean ecoRide;
-    private String paymentMethod;  // UPI, CARD, CASH
+    private String paymentMethod;      // UPI, CARD, CASH
+    private String status;             // PENDING, CONFIRMED, etc.
     
     // Payment-specific fields
     private String upiId;              // For UPI payments

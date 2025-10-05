@@ -36,6 +36,17 @@ public class CashPayment extends Payment {
      */
     @Override
     public String processPayment() {
+        // Debug logging
+        System.out.println("=== CashPayment Debug ===");
+        System.out.println("Amount (fare): " + getAmount());
+        System.out.println("Received Amount: " + receivedAmount);
+        System.out.println("isValidAmount(): " + isValidAmount());
+        System.out.println("receivedAmount != null: " + (receivedAmount != null));
+        if (receivedAmount != null && getAmount() != null) {
+            System.out.println("receivedAmount >= getAmount(): " + (receivedAmount >= getAmount()));
+        }
+        System.out.println("========================");
+        
         // Simulate cash payment processing
         if (isValidAmount() && receivedAmount != null && receivedAmount >= getAmount()) {
             calculateChange();

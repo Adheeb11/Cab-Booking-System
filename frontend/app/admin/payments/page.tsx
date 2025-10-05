@@ -117,11 +117,11 @@ export default function AdminPayments() {
                 {payments.map((payment) => (
                   <tr key={payment.paymentId} className="hover:bg-gray-50">
                     <td className="px-6 py-4 text-sm text-gray-900">{payment.paymentId}</td>
-                    <td className="px-6 py-4 text-sm text-gray-900">#{payment.booking.bookingId}</td>
-                    <td className="px-6 py-4 text-sm text-gray-900">{payment.booking.user.name}</td>
+                    <td className="px-6 py-4 text-sm text-gray-900">#{payment.booking?.bookingId || 'N/A'}</td>
+                    <td className="px-6 py-4 text-sm text-gray-900">{payment.booking?.user?.name || 'N/A'}</td>
                     <td className="px-6 py-4 text-sm text-gray-500">
                       <div className="max-w-xs truncate">
-                        {payment.booking.pickupLocation} → {payment.booking.dropLocation}
+                        {payment.booking?.pickupLocation || 'N/A'} → {payment.booking?.dropLocation || 'N/A'}
                       </div>
                     </td>
                     <td className="px-6 py-4 text-sm font-medium text-gray-900">₹{payment.amount.toFixed(2)}</td>

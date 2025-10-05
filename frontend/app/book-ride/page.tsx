@@ -35,7 +35,11 @@ interface BookingData {
   cardNumber: string
   cardExpiry: string
   cardCVV: string
+  cardType: string
+  bankName: string
+  cardHolderName: string
   upiId: string
+  receivedAmount: string
 }
 
 export default function BookRide() {
@@ -65,7 +69,11 @@ export default function BookRide() {
     cardNumber: '',
     cardExpiry: '',
     cardCVV: '',
-    upiId: ''
+    cardType: 'DEBIT',
+    bankName: '',
+    cardHolderName: '',
+    upiId: '',
+    receivedAmount: ''
   })
 
   // Search location using Nominatim API
@@ -193,9 +201,10 @@ export default function BookRide() {
     }
 
     const fare = calculateFare()
-    const token = localStorage.getItem('token')
+    const userId = localStorage.getItem('userId')
+    const user = localStorage.getItem('user')
 
-    if (!token) {
+    if (!userId || !user) {
       alert('Please login to book a ride')
       router.push('/login')
       return
@@ -204,7 +213,8 @@ export default function BookRide() {
     try {
       const fareValue = typeof fare === 'string' ? parseFloat(fare) : fare
       
-      const payload = {
+      const payload: any = {
+        userId: parseInt(userId),
         pickupLocation: bookingData.pickupLocation,
         dropLocation: bookingData.dropLocation,
         pickupLatitude: bookingData.pickupLat,
@@ -219,18 +229,48 @@ export default function BookRide() {
         status: 'PENDING'
       }
 
+      // Add payment-specific fields based on payment method
+      if (bookingData.paymentMethod === 'upi') {
+        if (!bookingData.upiId) {
+          alert('Please enter your UPI ID')
+          return
+        }
+        payload.upiId = bookingData.upiId
+      } else if (bookingData.paymentMethod === 'card') {
+        if (!bookingData.cardNumber || !bookingData.cardHolderName || !bookingData.cardExpiry || !bookingData.cardCVV || !bookingData.bankName) {
+          alert('Please fill all card details')
+          return
+        }
+        payload.cardNumber = bookingData.cardNumber
+        payload.cardType = bookingData.cardType
+        payload.bankName = bookingData.bankName
+        payload.cardHolderName = bookingData.cardHolderName
+      } else if (bookingData.paymentMethod === 'cash') {
+        // For cash payments, round up to nearest 10 and add buffer
+        const roundedAmount = Math.ceil(fareValue / 10) * 10
+        payload.receivedAmount = roundedAmount > fareValue ? roundedAmount : fareValue + 10
+        payload.collectedBy = 'Driver'
+      }
+
+      console.log('Booking payload:', payload)
+
       const response = await fetch('http://localhost:8080/api/bookings', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify(payload)
       })
 
       if (response.ok) {
         const booking = await response.json()
-        router.push(`/booking-summary?id=${booking.id}`)
+        console.log('Booking response:', booking)
+        
+        // Store booking data in sessionStorage for booking-summary page
+        sessionStorage.setItem('latestBooking', JSON.stringify(booking))
+        
+        // Redirect to booking summary (use bookingId from response)
+        router.push('/booking-summary')
       } else {
         const error = await response.text()
         alert(`Booking failed: ${error}`)
@@ -422,7 +462,20 @@ export default function BookRide() {
                 <div className="space-y-4 bg-gray-50 p-4 rounded-lg">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Card Number
+                      Card Holder Name *
+                    </label>
+                    <input
+                      type="text"
+                      value={bookingData.cardHolderName}
+                      onChange={(e) => setBookingData(prev => ({ ...prev, cardHolderName: e.target.value }))}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                      placeholder="John Doe"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Card Number *
                     </label>
                     <input
                       type="text"
@@ -430,12 +483,43 @@ export default function BookRide() {
                       onChange={(e) => setBookingData(prev => ({ ...prev, cardNumber: e.target.value }))}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                       placeholder="1234 5678 9012 3456"
+                      required
+                      maxLength={19}
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Expiry Date
+                        Card Type *
+                      </label>
+                      <select
+                        value={bookingData.cardType}
+                        onChange={(e) => setBookingData(prev => ({ ...prev, cardType: e.target.value }))}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                        required
+                      >
+                        <option value="DEBIT">Debit Card</option>
+                        <option value="CREDIT">Credit Card</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Bank Name *
+                      </label>
+                      <input
+                        type="text"
+                        value={bookingData.bankName}
+                        onChange={(e) => setBookingData(prev => ({ ...prev, bankName: e.target.value }))}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                        placeholder="Bank Name"
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Expiry Date *
                       </label>
                       <input
                         type="text"
@@ -443,11 +527,13 @@ export default function BookRide() {
                         onChange={(e) => setBookingData(prev => ({ ...prev, cardExpiry: e.target.value }))}
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                         placeholder="MM/YY"
+                        required
+                        maxLength={5}
                       />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        CVV
+                        CVV *
                       </label>
                       <input
                         type="text"
@@ -455,6 +541,8 @@ export default function BookRide() {
                         onChange={(e) => setBookingData(prev => ({ ...prev, cardCVV: e.target.value }))}
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                         placeholder="123"
+                        required
+                        maxLength={3}
                       />
                     </div>
                   </div>
@@ -465,7 +553,7 @@ export default function BookRide() {
               {bookingData.paymentMethod === 'upi' && (
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    UPI ID
+                    UPI ID *
                   </label>
                   <input
                     type="text"
@@ -473,7 +561,11 @@ export default function BookRide() {
                     onChange={(e) => setBookingData(prev => ({ ...prev, upiId: e.target.value }))}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                     placeholder="yourname@upi"
+                    required
                   />
+                  <p className="mt-2 text-xs text-gray-500">
+                    Example: 9876543210@paytm, username@oksbi, name@ybl
+                  </p>
                 </div>
               )}
 

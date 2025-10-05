@@ -58,27 +58,48 @@ export default function Register() {
     setError('')
 
     try {
-      const registerData = {
-        name: formData.name,
-        email: formData.email,
-        phone: formData.phone,
-        address: formData.address,
-        password: formData.password
+      // Call backend API for registration
+      const response = await fetch('http://localhost:8080/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          address: formData.address,
+          password: formData.password
+        })
+      })
+
+      if (!response.ok) {
+        const errorData = await response.text()
+        throw new Error(errorData || 'Registration failed')
       }
+
+      const data = await response.json()
       
-      const response = await mockApi.register(registerData)
-      
-      if (response.userId) {
+      // Store user data (backend doesn't use JWT tokens)
+      if (data.success && data.userId) {
         setSuccess(true)
         
         // Auto login after 2 seconds
         setTimeout(() => {
-          localStorage.setItem('user', JSON.stringify(response))
-          localStorage.setItem('userId', response.userId.toString())
+          localStorage.setItem('userId', data.userId.toString())
+          localStorage.setItem('user', JSON.stringify({
+            userId: data.userId,
+            name: data.name || formData.name,
+            email: data.email || formData.email,
+            role: data.role || 'USER'
+          }))
           router.push('/')
         }, 2000)
+      } else {
+        throw new Error(data.message || 'Registration failed')
       }
     } catch (error: any) {
+      console.error('Registration error:', error)
       setError(error.message || 'Registration failed. Please try again.')
     } finally {
       setLoading(false)

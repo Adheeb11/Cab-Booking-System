@@ -219,6 +219,8 @@ public class BookingService {
                 
             case "CASH":
                 CashPayment cashPayment = new CashPayment();
+                System.out.println("Creating CashPayment - receivedAmount from request: " + request.getReceivedAmount());
+                System.out.println("Creating CashPayment - collectedBy from request: " + request.getCollectedBy());
                 cashPayment.setReceivedAmount(request.getReceivedAmount());
                 cashPayment.setCollectedBy(request.getCollectedBy());
                 payment = cashPayment;
@@ -232,6 +234,9 @@ public class BookingService {
         payment.setPaymentStatus("PENDING");
         payment.setTransactionTime(LocalDateTime.now());
         payment.setBooking(booking);
+        
+        System.out.println("Payment created - Amount set to: " + booking.getFare());
+        System.out.println("Payment type: " + payment.getClass().getSimpleName());
         
         return payment;
     }

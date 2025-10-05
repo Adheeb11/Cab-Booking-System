@@ -278,4 +278,33 @@ public class AdminController {
                     .body("Error calculating revenue: " + e.getMessage());
         }
     }
+    
+    /**
+     * Reset all cabs to available status
+     * Useful for testing and development
+     */
+    @PostMapping("/cabs/reset-availability")
+    public ResponseEntity<?> resetCabAvailability() {
+        try {
+            List<Cab> allCabs = cabRepository.findAll();
+            for (Cab cab : allCabs) {
+                cab.setIsAvailable(true);
+            }
+            cabRepository.saveAll(allCabs);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "All cabs reset to available");
+            response.put("cabsReset", allCabs.size());
+            
+            System.out.println("✅ All " + allCabs.size() + " cabs reset to available");
+            
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, Object> error = new HashMap<>();
+            error.put("success", false);
+            error.put("message", "Error resetting cabs: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+        }
+    }
 }

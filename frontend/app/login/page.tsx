@@ -31,6 +31,7 @@ export default function Login() {
 
     try {
       if (userType === 'driver') {
+        // Use mock API for driver login (driver dashboard is mock-based)
         const response = await mockApi.driverLogin(formData.email, formData.password)
         
         if (response.driverId) {
@@ -42,19 +43,44 @@ export default function Login() {
           router.push('/driver-dashboard')
         }
       } else {
-        const response = await mockApi.login(formData.email, formData.password)
+        // Call backend API for customer login to get JWT token
+        const response = await fetch('http://localhost:8080/api/auth/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            email: formData.email,
+            password: formData.password
+          })
+        })
+
+        if (!response.ok) {
+          const errorData = await response.text()
+          throw new Error(errorData || 'Login failed')
+        }
+
+        const data = await response.json()
         
-        if (response.userId) {
-          // Store user data in localStorage
-          localStorage.setItem('user', JSON.stringify(response))
-          localStorage.setItem('userId', response.userId.toString())
-        
+        // Store user data (backend doesn't use JWT tokens)
+        if (data.success && data.userId) {
+          localStorage.setItem('userId', data.userId.toString())
+          localStorage.setItem('user', JSON.stringify({
+            userId: data.userId,
+            name: data.name || formData.email,
+            email: data.email || formData.email,
+            role: data.role || 'USER'
+          }))
+          
           // Redirect to home
           router.push('/')
+        } else {
+          throw new Error(data.message || 'Login failed')
         }
       }
     } catch (error: any) {
-      setError(error.message || 'Invalid email or password')
+      console.error('Login error:', error)
+      setError(error.message || 'Invalid email or password. Please try again.')
     } finally {
       setLoading(false)
     }
